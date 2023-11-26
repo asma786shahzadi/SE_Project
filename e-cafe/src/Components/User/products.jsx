@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     MDBNavbar,
     MDBContainer,
@@ -17,6 +17,20 @@ import Footer from './footer';
 export default function Products() {
     const [openNavColor, setOpenNavColor] = useState(false);
     const [products, setproducts] = useState([]);
+    useEffect(() => {
+        const fetchData = async () => {
+            document.body.style.overflowX = "hidden";
+            try {
+                const response = await fetch("http://localhost:4000/viewproduct")
+                const data = await response.json();
+                const filteredData = data.filter(item => item.availabilityStatus === true);
+                setproducts(filteredData);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchData();
+    }, []);
     return (
         <>
             <Navbar />

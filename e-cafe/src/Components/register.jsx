@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom/cjs/react-router-dom.min';
+import { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
     MDBBtn,
     MDBContainer,
@@ -12,6 +14,76 @@ import {
     from 'mdb-react-ui-kit';
 
 function Register() {
+    const [name, setname] = useState("");
+    const [address, setaddress] = useState("");
+    const [username, setusername] = useState("");
+    const [email, setemail] = useState("");
+    const [password, setpassword] = useState("");
+    const [user, setuser] = useState([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            document.body.style.overflowX = "hidden";
+            try {
+                const response = await fetch("http://localhost:4000/viewuser")
+                const data = await response.json();
+                setuser(data);
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchData();
+    }, []);
+
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        var add = true;
+
+        for (let i = 0; i < user.length; i++) {
+            if (user[i].email === email) {
+                add = false;
+                document.getElementById("error").innerHTML = "User already exists";
+                document.getElementById("error").style.color = "red";
+                document.getElementById("error").style.display = "block";
+            }
+            else {
+                add = true;
+                document.getElementById("error").style.display = "none";
+            }
+        }
+        if (add === true) {
+            var pass = document.getElementById('password').value;
+            var cpassword = document.getElementById('cpassword').value;
+            if (pass !== cpassword) {
+                document.getElementById("error").innerHTML = "PASSWORD & CONFIRM PASSWORD MUST BE SAME";
+                document.getElementById("error").style.color = "red";
+                document.getElementById("error").style.display = "block";
+            } else {
+                const Data = {
+                    Name: name,
+                    Address: address,
+                    Email: email,
+                    Username: username,
+                    Password: password,
+                }
+                console.log(Data)
+                const respone = await axios.post('http://localhost:4000/register', Data)
+                if (respone.data.message === "User Already Exists") {
+                    document.getElementById("error").innerHTML = "USER ALREADY EXISTS";
+                    document.getElementById("error").style.color = "red";
+                    document.getElementById("error").style.display = "block";
+                } else {
+                    document.getElementById("error").innerHTML = "REGISTERED SUCCESSFULLY";
+                    document.getElementById("error").style.color = "green";
+                    document.getElementById("error").style.display = "block";
+                    setTimeout(() => {
+                        window.location.href = "/login";
+                    }, 2000);
+                }
+            }
+        }
+    };
 
     return (
         <MDBContainer className="my-5">
@@ -35,14 +107,14 @@ function Register() {
                             </div>
                             <h5 className="fw-bold my-4 pb-3" style={{ color: '#BEAFAF', letterSpacing: '1px' }}>Welcome to E-Cafe Registration Portal</h5>
                             {/* value={name} onChange={(e) => setname(e.target.value)} */}
-                            <MDBInput required contrast wrapperClass="mb-4"  label="Name" id="name" type="text" size="lg" />
-                            <MDBInput required contrast wrapperClass="mb-4"  label="Address" id="address" type="text" size="lg" />
-                            <MDBInput required contrast wrapperClass="mb-4"  label="Username" id="username" type="email" size="lg" />
-                            <MDBInput required contrast wrapperClass="mb-4"  label="Email address" id="email" type="email" size="lg" />
-                            <MDBInput required contrast wrapperClass="mb-4"  label="Password" id="password" type="password" size="lg" />
+                            <MDBInput required contrast wrapperClass="mb-4" value={name} onChange={(e) => setname(e.target.value)} label="Name" id="name" type="text" size="lg" />
+                            <MDBInput required contrast wrapperClass="mb-4" value={address} onChange={(e) => setaddress(e.target.value)} label="Address" id="address" type="text" size="lg" />
+                            <MDBInput required contrast wrapperClass="mb-4" value={username} onChange={(e) => setusername(e.target.value)} label="Username" id="username" type="email" size="lg" />
+                            <MDBInput required contrast wrapperClass="mb-4" value={email} onChange={(e) => setemail(e.target.value)} label="Email address" id="email" type="email" size="lg" />
+                            <MDBInput required contrast wrapperClass="mb-4" value={password} onChange={(e) => setpassword(e.target.value)} label="Password" id="password" type="password" size="lg" />
                             <MDBInput required contrast wrapperClass="mb-4" label="Confirm Password" id="cpassword" type="password" size="lg" />
                             <span id="error"></span>
-                            <MDBBtn style={{ boxShadow: 'none', backgroundColor: "#CCB7A9" }} block className="my-4">
+                            <MDBBtn onClick={handleSubmit} style={{ boxShadow: 'none', backgroundColor: "#CCB7A9" }} block className="my-4">
                                 Register
                             </MDBBtn>
                             <p className="mb-5 pb-lg-2" style={{ color: '#BEAFAF' }}>Already have an account<Link style={{ fontWeight: 'bold', color: '#CCB7A9' }} to="/login">Login</Link>

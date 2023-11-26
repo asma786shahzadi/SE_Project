@@ -36,3 +36,51 @@
     transform: rotate(360deg);
   }
 }
+
+
+/* My CSS */
+.nav-color {
+  background-color: #AA9D8D;
+}
+
+.nav-text-color{
+  padding-top: 20px;
+  padding-bottom: 20px;
+  color: #E6DFD8;
+}
+
+.reg{
+  margin-left: 100px;
+  margin-right: 100px;
+}
+
+.imgback{
+  position: relative;
+  background: url(../public/desktop-wallpaper-food-background-food-food-recipes-food-menu-greek-food-thumbnail.jpg);
+  background-size: cover;
+  overflow: hidden;
+}
+
+.nav-text-color:hover{
+  color: #ffffff;
+}
+
+
+/* Default styles for larger screens */
+.row11 {
+  width: 70%;
+}
+
+.MDBCard11 {
+  margin-left: 250px;
+}
+
+@media (max-width: 767px) {
+  .row11 {
+      width: 100%;
+  }
+
+  .MDBCard11 {
+      margin-left: 0;
+  }
+}

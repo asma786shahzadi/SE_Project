@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   MDBNavbar,
   MDBContainer,
@@ -25,9 +26,126 @@ import Footer from './footer';
 
 
 export default function Cart() {
-  
   const [openNavColor, setOpenNavColor] = useState(false);
   const [data, setData] = useState([]);
+  const [userdata, setUserdata] = useState([]);
+  const [quantities, setQuantities] = useState([]);
+
+  useEffect(() => {
+    if (localStorage.getItem("role") !== 'User') {
+      alert("You need to login first to view your cart");
+    }
+    else {
+      async function getData() {
+        try {
+          const userId = localStorage.getItem("useremail");
+          const response = await fetch(
+            `http://localhost:4000/viewcart`
+          );
+          const responseData = await response.json();
+
+          const filteredData = responseData.filter(item => item.userId === userId);
+          setData(filteredData);
+          setQuantities(filteredData.map(() => 1));
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      }
+      async function getData1() {
+        try {
+          const userId = localStorage.getItem("useremail");
+          const response = await fetch(
+            `http://localhost:4000/viewuser`
+          );
+          const responseData = await response.json();
+
+          const filteredData = responseData.filter(item => item.email === userId);
+          setUserdata(filteredData);
+        } catch (error) {
+          console.error("Error fetching data:", error);
+        }
+      }
+      getData();
+      getData1();
+    }
+  }, []);
+
+
+  const handleRemoveFromCart = async (ProductId, UserId) => {
+    try {
+      const isConfirmed = window.confirm(
+        "Are you sure you want to delete this product?"
+      );
+      if (isConfirmed) {
+        const response = await fetch(
+          `http://localhost:4000/deletecart?productId=${ProductId}&userId=${UserId}`,
+          {
+            method: "DELETE",
+          }
+        );
+
+        if (response.ok) {
+          const updatedData = data.filter(
+            (item) => item.ProductId !== ProductId
+          );
+          const updatedQuantities = quantities.filter(
+            (_, index) => index !== ProductId
+          );
+          setData(updatedData);
+          setQuantities(updatedQuantities);
+        } else {
+          console.error("Error deleting Cart Item");
+          alert("Error deleting Cart Item");
+        }
+      } else {
+        console.log("Deletion canceled by the user");
+      }
+    } catch (error) {
+      console.error("Error deleting Product:", error);
+      alert("Error in deletion");
+    }
+  };
+
+  const handleQuantityChange = (value, index) => {
+    const newQuantities = [...quantities];
+    newQuantities[index] = parseInt(value, 10);
+    setQuantities(newQuantities);
+  };
+
+  const handleBuy = async (productId, userId, productName, ProductImage, productDescription, productPrice, productSize, index) => {
+    const requestData = {
+      productId: productId,
+      userId: userId,
+      userAddress: userdata[0].address,
+      productName: productName,
+      productImage: ProductImage,
+      productDescription: productDescription,
+      productPrice: productPrice,
+      productSize: productSize,
+      productQuantity: quantities[index],
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:4000/buyProduct",
+        requestData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      const responseData = response.data;
+      if (responseData.message === "outofstock") {
+        alert("Product is out of stock / not enough quantity available");
+      } else {
+        window.location.href = responseData.sessionUrl;
+      }
+    } catch (error) {
+      console.error("Error:", error.message);
+    }
+  };
 
   return (
     <>
@@ -128,7 +246,11 @@ export default function Cart() {
                                   type="number"
                                   label="Quantity"
                                   min="1"
+                                  value={quantities[index]}
                                   size="sm"
+                                  onChange={(e) =>
+                                    handleQuantityChange(e.target.value, index)
+                                  }
                                 />
                               </div>
                               <div >
@@ -141,6 +263,18 @@ export default function Cart() {
                               type="button"
                               size="sm"
                               className="btn bg-primary btn-block mb-1 mt-20"
+                              onClick={() =>
+                                handleBuy(
+                                  item.productId,
+                                  item.userId,
+                                  item.productName,
+                                  item.ProductImage,
+                                  item.productDescription,
+                                  item.productPrice,
+                                  item.productSize,
+                                  index,
+                                )
+                              }
                               style={{ fontSize: "15px" }}
                             >
                               Buy Product
@@ -150,6 +284,7 @@ export default function Cart() {
                               size="sm"
                               className="btn bg-warning btn-block mb-4 mt-20"
                               style={{ fontSize: "15px" }}
+                              onClick={() => handleRemoveFromCart(item.productId, item.userId)}
                             >
                               Remove From Cart
                             </button>

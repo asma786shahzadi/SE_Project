@@ -21,6 +21,34 @@ import Footer from './footer';
 
 export default function Support() {
   const [openNavColor, setOpenNavColor] = useState(false);
+
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('name').value;
+    const email = document.getElementById('email').value;
+    const subject = document.getElementById('subject').value;
+    const message = document.getElementById('message').value;
+    const data = {name , email , subject , message };
+    const response = await fetch("http://localhost:4000/support", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data),
+    });
+    if (response.ok) {
+      alert("Message Sent.");
+      setTimeout(() => {
+        document.getElementById('name').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('subject').value = '';
+        document.getElementById('message').value = '';
+      }, 1000);
+    } else {
+      alert("Message failed to send.");
+    }
+  }
   return (
     <>
       <Navbar />
@@ -145,7 +173,7 @@ export default function Support() {
                 <MDBInput id='email' label="Email address" required className="mb-4" />
                 <MDBInput id='subject' label="Mail Subject" required className="mb-4" />
                 <MDBTextArea id='message' rows={4} label="Message" required className="mb-4" />
-                <MDBBtn block style={{ boxShadow: '0 4px 8px 0 #AA9D8D', backgroundColor: '#AA9D8D', border: 'none'}} >Send</MDBBtn>
+                <MDBBtn block onClick={handleSend} style={{ boxShadow: '0 4px 8px 0 #AA9D8D', backgroundColor: '#AA9D8D', border: 'none'}} >Send</MDBBtn>
               </form>
             </MDBCol>
           </MDBRow>
